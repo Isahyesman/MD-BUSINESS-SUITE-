@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0A0E1A"/>
+<link rel="manifest" href="manifest.json"/>
+<title>MD Business Suite</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#0A0E1A;color:#F0F6FC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;}
+::-webkit-scrollbar{display:none;}
+button{cursor:pointer;border:none;font-family:inherit;}
+input,select,textarea{outline:none;font-family:inherit;}
+
+/* ── Splash ── */
+#splash{position:fixed;inset:0;background:linear-gradient(160deg,#0A0E1A 0%,#0f1a35 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.6s;}
+#splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{width:110px;height:110px;background:linear-gradient(135deg,#F5C842,#e6a800);border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#0A0E1A;margin-bottom:28px;box-shadow:0 0 80px rgba(245,200,66,0.35);}
+.splash-name{font-size:30px;font-weight:900;color:#F0F6FC;letter-spacing:-0.5px;margin-bottom:6px;}
+.splash-tag{font-size:13px;color:#8B949E;margin-bottom:4px;}
+.splash-pow{font-size:12px;color:#4A5568;margin-top:40px;}
+.splash-pow span{color:#F5C842;font-weight:700;}
+.splash-bar{width:120px;height:3px;background:#1F2937;border-radius:2px;margin-top:16px;overflow:hidden;}
+.splash-progress{height:100%;background:#F5C842;border-radius:2px;animation:load 2s ease forwards;}
+@keyframes load{from{width:0%}to{width:100%}}
+
+/* ── Header ── */
+.header{position:sticky;top:0;z-index:10;background:rgba(10,14,26,0.97);backdrop-filter:blur(14px);padding:14px 18px 10px;border-bottom:1px solid #1F2937;}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.header-brand{font-size:10px;color:#4A5568;letter-spacing:1.5px;text-transform:uppercase;}
+.header-title{font-size:20px;font-weight:800;color:#F0F6FC;}
+.add-btn{background:linear-gradient(135deg,#F5C842,#e6a800);width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#0A0E1A;flex-shrink:0;box-shadow:0 4px 15px rgba(245,200,66,0.3);}
+.tab-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;}
+.tab-btn{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;background:#161B22;color:#8B949E;border:none;flex-shrink:0;}
+.tab-btn.active{background:#F5C842;color:#0A0E1A;}
+
+/* ── Nav ── */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(16,21,32,0.98);backdrop-filter:blur(16px);border-top:1px solid #1F2937;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 0 22px;z-index:10;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;border:none;}
+.nav-icon{font-size:19px;}
+.nav-label{font-size:9px;color:#4A5568;font-weight:500;}
+.nav-label.active{color:#F5C842;font-weight:700;}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:#F5C842;margin-top:1px;}
+
+/* ── Layout ── */
+.page{padding:16px 16px 110px;}
+.screen{display:none;}.screen.active{display:block;}
+
+/* ── Balance Card ── */
+.bal-card{background:linear-gradient(135deg,#1a2744 0%,#0f1a35 100%);border-radius:24px;padding:22px;margin-bottom:14px;border:1px solid #1e3461;position:relative;overflow:hidden;}
+.bal-glow{position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:#F5C842;border-radius:50%;opacity:0.06;filter:blur(30px);}
+.bal-owner{font-size:11px;color:#4A5568;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.bal-label{font-size:12px;color:#8B949E;margin-bottom:6px;}
+.bal-amount{font-size:34px;font-weight:800;letter-spacing:-1px;margin-bottom:18px;}
+.bal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.bal-sub{background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;}
+.bal-sub-label{color:#4A5568;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.bal-sub-amount{font-size:16px;font-weight:700;}
+
+/* ── Summary ── */
+.summary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.sum-card{background:#161B22;border-radius:16px;padding:14px;border:1px solid;}
+.sum-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;font-size:15px;}
+.sum-label{color:#8B949E;font-size:12px;margin-bottom:3px;}
+.sum-amount{font-size:16px;font-weight:700;}
+
+/* ── Action Buttons ── */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.act-btn{padding:16px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:16px;font-weight:800;color:#fff;}
+
+/* ── Section ── */
+.sec-title{color:#F0F6FC;font-size:15px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.sec-link{color:#F5C842;font-size:12px;font-weight:600;}
+.empty{background:#161B22;border-radius:14px;padding:28px;text-align:center;border:1px dashed #2D3748;}
+.empty-txt{color:#4A5568;font-size:13px;}
+
+/* ── Record Row ── */
+.rec-row{background:#161B22;border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border:1px solid #1F2937;}
+.rec-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;}
+.rec-info{flex:1;min-width:0;}
+.rec-note{color:#F0F6FC;font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-meta{display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap;}
+.rec-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;}
+.rec-date{color:#4A5568;font-size:10px;}
+.rec-right{text-align:right;flex-shrink:0;}
+.rec-amount{font-weight:700;font-size:14px;}
+.rec-actions{display:flex;gap:5px;justify-content:flex-end;margin-top:3px;}
+.rec-btn{border-radius:6px;padding:4px 5px;display:flex;align-items:center;justify-content:center;font-size:11px;border:none;}
+
+/* ── Currency ── */
+.fx-card{background:#161B22;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #1F2937;}
+.fx-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.fx-currency{font-size:17px;font-weight:800;}
+.fx-rate-display{font-size:12px;color:#8B949E;}
+.fx-rate-display span{color:#F5C842;font-weight:700;}
+.edit-rate-btn{background:#1F2937;border:none;border-radius:8px;padding:6px 12px;color:#F5C842;font-size:12px;font-weight:700;}
+.fx-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;}
+.fx-inp{background:#1F2937;border:2px solid #2D3748;border-radius:10px;padding:10px;color:#F0F6FC;font-size:15px;font-weight:700;width:100%;}
+.fx-out{background:#1F2937;border:2px solid #10D98B;border-radius:10px;padding:10px;color:#10D98B;font-size:15px;font-weight:700;width:100%;}
+.fx-arrow{color:#F5C842;font-size:20px;text-align:center;font-weight:900;}
+.rate-inp{width:100%;background:#1F2937;border:1px solid #2D3748;border-radius:8px;padding:8px 10px;color:#F5C842;font-size:13px;margin-top:10px;}
+
+/* ── Savings ── */
+.client-card{background:#161B22;border-radius:16px;padding:14px;margin-bottom:10px;border:1px solid #1F2937;}
+.client-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.client-name{color:#F0F6FC;font-weight:700;font-size:15px;}
+.client-bal{font-size:22px;font-weight:800;color:#10D98B;margin-top:2px;}
+.client-meta{color:#8B949E;font-size:11px;margin-top:2px;}
+.client-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.client-btn{padding:10px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;border:none;}
+
+/* ── Loans ── */
+.loan-card{background:#161B22;border-radius:16px;padding:14px;margin-bottom:10px;border:1px solid #1F2937;}
+.loan-name{color:#F0F6FC;font-weight:700;font-size:15px;}
+.loan-amount{font-size:20px;font-weight:800;color:#FF5C6A;margin-top:2px;}
+.loan-meta{color:#8B949E;font-size:11px;margin-top:3px;}
+.loan-due{font-size:12px;font-weight:700;margin-top:4px;}
+.loan-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.loan-btn{padding:9px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;border:none;}
+.loan-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block;margin-top:4px;}
+
+/* ── Report ── */
+.report-card{background:#161B22;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #1F2937;}
+.report-title{color:#F5C842;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #1F2937;}
+.report-row:last-child{border-bottom:none;}
+.report-label{color:#8B949E;font-size:13px;}
+.report-value{font-size:14px;font-weight:700;color:#F0F6FC;}
+.print-btn{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#F5C842,#e6a800);color:#0A0E1A;font-size:15px;font-weight:800;border:none;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;}
+
+/* ── Filters ── */
+.filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;}
+.chip{padding:7px 14px;border-radius:20px;background:#161B22;color:#8B949E;font-weight:600;font-size:12px;white-space:nowrap;border:none;}
+.chip.active{background:#F5C842;color:#0A0E1A;}
+
+/* ── Modal ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px);}
+.overlay.open{display:flex;}
+.sheet{background:#161B22;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 18px 38px;border:1px solid #1F2937;animation:up 0.25s ease;max-height:92vh;overflow-y:auto;}
+@keyframes up{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.handle{width:40px;height:4px;background:#2D3748;border-radius:2px;margin:0 auto 16px;}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.mtitle{color:#F0F6FC;font-weight:700;font-size:17px;}
+.xbtn{background:#1F2937;border-radius:10px;padding:7px 9px;color:#8B949E;border:none;font-size:15px;}
+.toggle{display:grid;grid-template-columns:1fr 1fr;background:#1F2937;border-radius:12px;padding:3px;margin-bottom:14px;}
+.tbtn{padding:11px;border-radius:9px;background:transparent;color:#8B949E;font-weight:700;font-size:13px;border:none;transition:all 0.18s;}
+.lbl{color:#8B949E;font-size:12px;margin-bottom:5px;display:block;margin-top:12px;}
+.lbl:first-of-type{margin-top:0;}
+.inp{width:100%;padding:11px 13px;background:#1F2937;border:2px solid #2D3748;border-radius:11px;color:#F0F6FC;font-size:14px;}
+.inp-lg{font-size:19px;font-weight:700;padding:13px;}
+.sel{width:100%;padding:11px 13px;background:#1F2937;border:2px solid #2D3748;border-radius:11px;color:#F0F6FC;font-size:14px;}
+.sbtn{width:100%;padding:15px;border-radius:13px;font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;border:none;}
+
+/* ── Colors ── */
+.green{color:#10D98B;}.red{color:#FF5C6A;}.gold{color:#F5C842;}.blue{color:#4A9EFF;}.orange{color:#FF9F43;}
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="splash-logo">MD</div>
+  <div class="splash-name">MD Business Suite</div>
+  <div class="splash-tag">Alhj. Musa Dahiru — Business Manager</div>
+  <div class="splash-bar"><div class="splash-progress"></div></div>
+  <div class="splash-pow">By <span>ITech</span> · Powered by <span>Isa Ismail</span></div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-brand">MD Business Suite</div>
+      <div class="header-title" id="screen-title">Overview</div>
+    </div>
+    <button class="add-btn" onclick="openModal()">+</button>
+  </div>
+</div>
+
+<!-- ══ HOME ══ -->
+<div id="screen-home" class="screen active">
+  <div class="page">
+    <div class="bal-card">
+      <div class="bal-glow"></div>
+      <div class="bal-owner">Alhj. Musa Dahiru</div>
+      <div class="bal-label">Total Business Balance</div>
+      <div class="bal-amount" id="total-bal">₦0</div>
+      <div class="bal-row">
+        <div class="bal-sub"><div class="bal-sub-label">Cash</div><div class="bal-sub-amount green" id="cash-bal">₦0</div></div>
+        <div class="bal-sub"><div class="bal-sub-label">Bank</div><div class="bal-sub-amount blue" id="bank-bal">₦0</div></div>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="sum-card" style="border-color:rgba(16,217,139,0.2)">
+        <div class="sum-icon" style="background:rgba(16,217,139,0.12)">↓</div>
+        <div class="sum-label">Collected</div>
+        <div class="sum-amount green" id="total-in">₦0</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(255,92,106,0.2)">
+        <div class="sum-icon" style="background:rgba(255,92,106,0.12)">↑</div>
+        <div class="sum-label">Spent</div>
+        <div class="sum-amount red" id="total-out">₦0</div>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="sum-card" style="border-color:rgba(255,159,67,0.2)">
+        <div class="sum-icon" style="background:rgba(255,159,67,0.12)">💸</div>
+        <div class="sum-label">Loans Out</div>
+        <div class="sum-amount orange" id="total-loans">₦0</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(74,158,255,0.2)">
+        <div class="sum-icon" style="background:rgba(74,158,255,0.12)">👥</div>
+        <div class="sum-label">Client Savings</div>
+        <div class="sum-amount blue" id="total-savings">₦0</div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="act-btn" style="background:#FF5C6A" onclick="openModal('spend')">↑ Spend</button>
+      <button class="act-btn" style="background:#10D98B" onclick="openModal('collect')">↓ Collect</button>
+    </div>
+    <div class="sec-title">Recent Activity <span class="sec-link" onclick="setScreen('history')">See all →</span></div>
+    <div id="recent-list"><div class="empty"><div class="empty-txt">No records yet.</div></div></div>
+  </div>
+</div>
+
+<!-- ══ CURRENCY ══ -->
+<div id="screen-currency" class="screen">
+  <div class="page">
+    <p style="color:#8B949E;font-size:13px;margin-bottom:16px;">Set today's rates and convert instantly</p>
+    <div id="fx-cards"></div>
+  </div>
+</div>
+
+<!-- ══ SAVINGS ══ -->
+<div id="screen-savings" class="screen">
+  <div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div><div style="color:#F0F6FC;font-weight:700;font-size:15px;">Client Savings</div><div style="color:#8B949E;font-size:12px;" id="savings-summary">0 clients</div></div>
+      <button onclick="openAddClient()" style="background:#F5C842;border:none;border-radius:10px;padding:8px 14px;color:#0A0E1A;font-size:13px;font-weight:700;">+ Add Client</button>
+    </div>
+    <div id="clients-list"><div class="empty"><div class="empty-txt">No clients yet.</div></div></div>
+  </div>
+</div>
+
+<!-- ══ LOANS ══ -->
+<div id="screen-loans" class="screen">
+  <div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div><div style="color:#F0F6FC;font-weight:700;font-size:15px;">Loan Management</div><div style="color:#8B949E;font-size:12px;" id="loans-summary">0 active loans</div></div>
+      <button onclick="openAddLoan()" style="background:#FF5C6A;border:none;border-radius:10px;padding:8px 14px;color:#fff;font-size:13px;font-weight:700;">+ New Loan</button>
+    </div>
+    <div class="filter-row">
+      <button class="chip active" onclick="setLoanFilter('all',this)">All</button>
+      <button class="chip" onclick="setLoanFilter('active',this)">Active</button>
+      <button class="chip" onclick="setLoanFilter('paid',this)">Paid</button>
+    </div>
+    <div id="loans-list"><div class="empty"><div class="empty-txt">No loans recorded yet.</div></div></div>
+  </div>
+</div>
+
+<!-- ══ REPORT ══ -->
+<div id="screen-report" class="screen">
+  <div class="page">
+    <p style="color:#8B949E;font-size:13px;margin-bottom:14px;" id="report-date"></p>
+    <div class="report-card">
+      <div class="report-title">📊 Daily Closing Summary</div>
+      <div class="report-row"><span class="report-label">Total Collected</span><span class="report-value green" id="r-in">₦0</span></div>
+      <div class="report-row"><span class="report-label">Total Spent</span><span class="report-value red" id="r-out">₦0</span></div>
+      <div class="report-row"><span class="report-label">Net Profit</span><span class="report-value" id="r-net">₦0</span></div>
+      <div class="report-row"><span class="report-label">Cash in Hand</span><span class="report-value green" id="r-cash">₦0</span></div>
+      <div class="report-row"><span class="report-label">Bank Balance</span><span class="report-value blue" id="r-bank">₦0</span></div>
+      <div class="report-row"><span class="report-label">Transactions</span><span class="report-value" id="r-count">0</span></div>
+    </div>
+    <div class="report-card">
+      <div class="report-title">💱 Today's FX Rates</div>
+      <div class="report-row"><span class="report-label">🇺🇸 USD/NGN</span><span class="report-value gold" id="r-usd">—</span></div>
+      <div class="report-row"><span class="report-label">🇪🇺 EUR/NGN</span><span class="report-value gold" id="r-eur">—</span></div>
+      <div class="report-row"><span class="report-label">🇬🇧 GBP/NGN</span><span class="report-value gold" id="r-gbp">—</span></div>
+    </div>
+    <div class="report-card">
+      <div class="report-title">👥 Savings & Loans</div>
+      <div class="report-row"><span class="report-label">Total Clients</span><span class="report-value" id="r-clients">0</span></div>
+      <div class="report-row"><span class="report-label">Total Savings</span><span class="report-value green" id="r-savings">₦0</span></div>
+      <div class="report-row"><span class="report-label">Active Loans</span><span class="report-value orange" id="r-loan-count">0</span></div>
+      <div class="report-row"><span class="report-label">Total Loans Out</span><span class="report-value red" id="r-loans">₦0</span></div>
+    </div>
+    <button class="print-btn" onclick="printReport()">🖨️ Share / Print Report</button>
+    <div style="text-align:center;margin-top:16px;color:#4A5568;font-size:11px;">MD Business Suite · ITech · Isa Ismail</div>
+  </div>
+</div>
+
+<!-- ══ HISTORY (hidden, used via see all) ══ -->
+<div id="screen-history" class="screen">
+  <div class="page">
+    <div class="filter-row">
+      <button class="chip active" onclick="setFilter('type','all',this)">All</button>
+      <button class="chip" onclick="setFilter('type','collect',this)">Collected</button>
+      <button class="chip" onclick="setFilter('type','spend',this)">Spent</button>
+    </div>
+    <div class="filter-row">
+      <button class="chip active" onclick="setFilter('acc','all',this)">All Accounts</button>
+      <button class="chip" onclick="setFilter('acc','cash',this)">Cash</button>
+      <button class="chip" onclick="setFilter('acc','bank',this)">Bank</button>
+    </div>
+    <div id="count-txt" style="color:#4A5568;font-size:12px;margin-bottom:10px;"></div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="nav">
+  <button class="nav-item" onclick="setScreen('home')" id="nav-home">
+    <div class="nav-icon">🏠</div><span class="nav-label active">Home</span><div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" onclick="setScreen('currency')" id="nav-currency">
+    <div class="nav-icon">💱</div><span class="nav-label">Currency</span>
+  </button>
+  <button class="nav-item" onclick="setScreen('savings')" id="nav-savings">
+    <div class="nav-icon">👥</div><span class="nav-label">Savings</span>
+  </button>
+  <button class="nav-item" onclick="setScreen('loans')" id="nav-loans">
+    <div class="nav-icon">💸</div><span class="nav-label">Loans</span>
+  </button>
+  <button class="nav-item" onclick="setScreen('report')" id="nav-report">
+    <div class="nav-icon">📊</div><span class="nav-label">Report</span>
+  </button>
+</div>
+
+<!-- Entry Modal -->
+<div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="mhdr"><span class="mtitle" id="modal-title">New Record</span><button class="xbtn" onclick="closeModal()">✕</button></div>
+    <div class="toggle">
+      <button class="tbtn" id="tog-spend" onclick="setFT('spend')">↑ Spend</button>
+      <button class="tbtn" id="tog-collect" onclick="setFT('collect')">↓ Collect</button>
+    </div>
+    <div class="toggle">
+      <button class="tbtn" id="tog-cash" onclick="setFA('cash')">💵 Cash</button>
+      <button class="tbtn" id="tog-bank" onclick="setFA('bank')">🏦 Bank</button>
+    </div>
+    <label class="lbl">Category</label>
+    <select class="sel" id="inp-cat">
+      <option>General</option><option>Currency Exchange</option><option>Store Sales</option>
+      <option>Client Savings</option><option>Loan Repayment</option><option>Expenses</option>
+      <option>Salary</option><option>Transfer</option>
+    </select>
+    <label class="lbl">Amount (₦)</label>
+    <input class="inp inp-lg" id="inp-amount" type="number" inputmode="numeric" placeholder="0.00" oninput="updateSaveBtn()"/>
+    <label class="lbl">Note</label>
+    <input class="inp" id="inp-note" type="text" placeholder="e.g. USD exchange — Alhaji Yusuf"/>
+    <button class="sbtn" id="save-btn" onclick="handleSave()" disabled style="background:#2D3748">
+      ✓ <span id="save-label">Record Spend</span>
+    </button>
+  </div>
+</div>
+
+<!-- Add Client Modal -->
+<div class="overlay" id="client-modal" onclick="if(event.target===this)closeClientModal()">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="mhdr"><span class="mtitle">Add Client</span><button class="xbtn" onclick="closeClientModal()">✕</button></div>
+    <label class="lbl">Client Full Name</label>
+    <input class="inp" id="c-name" type="text" placeholder="e.g. Alhaji Yusuf Ibrahim"/>
+    <label class="lbl">Phone Number</label>
+    <input class="inp" id="c-phone" type="tel" placeholder="e.g. 0801 234 5678"/>
+    <label class="lbl">Initial Deposit (₦)</label>
+    <input class="inp inp-lg" id="c-amt" type="number" inputmode="numeric" placeholder="0.00"/>
+    <label class="lbl">Note</label>
+    <input class="inp" id="c-note" type="text" placeholder="Optional note"/>
+    <button class="sbtn" onclick="saveClient()" style="background:#10D98B">✓ Add Client</button>
+  </div>
+</div>
+
+<!-- Client Transaction Modal -->
+<div class="overlay" id="ctxn-modal" onclick="if(event.target===this)closeCtxn()">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="mhdr"><span class="mtitle" id="ctxn-title">Transaction</span><button class="xbtn" onclick="closeCtxn()">✕</button></div>
+    <div class="toggle">
+      <button class="tbtn" id="ctog-dep" onclick="setCTT('deposit')">↓ Deposit</button>
+      <button class="tbtn" id="ctog-wit" onclick="setCTT('withdraw')">↑ Withdraw</button>
+    </div>
+    <label class="lbl">Amount (₦)</label>
+    <input class="inp inp-lg" id="ctxn-amt" type="number" inputmode="numeric" placeholder="0.00"/>
+    <label class="lbl">Note</label>
+    <input class="inp" id="ctxn-note" type="text" placeholder="Optional"/>
+    <button class="sbtn" onclick="saveCtxn()" id="ctxn-sbtn" style="background:#10D98B">✓ Save</button>
+  </div>
+</div>
+
+<!-- Add Loan Modal -->
+<div class="overlay" id="loan-modal" onclick="if(event.target===this)closeLoanModal()">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="mhdr"><span class="mtitle" id="loan-modal-title">New Loan</span><button class="xbtn" onclick="closeLoanModal()">✕</button></div>
+    <label class="lbl">Borrower Name</label>
+    <input class="inp" id="l-name" type="text" placeholder="e.g. Mallam Sule"/>
+    <label class="lbl">Phone Number</label>
+    <input class="inp" id="l-phone" type="tel" placeholder="e.g. 0801 234 5678"/>
+    <label class="lbl">Loan Amount (₦)</label>
+    <input class="inp inp-lg" id="l-amt" type="number" inputmode="numeric" placeholder="0.00"/>
+    <label class="lbl">Interest (%)</label>
+    <input class="inp" id="l-interest" type="number" placeholder="e.g. 10" value="0"/>
+    <label class="lbl">Due Date</label>
+    <input class="inp" id="l-due" type="date"/>
+    <label class="lbl">Note</label>
+    <input class="inp" id="l-note" type="text" placeholder="e.g. For business"/>
+    <button class="sbtn" onclick="saveLoan()" style="background:#FF9F43">✓ Record Loan</button>
+  </div>
+</div>
+
+<!-- Loan Repayment Modal -->
+<div class="overlay" id="repay-modal" onclick="if(event.target===this)closeRepay()">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="mhdr"><span class="mtitle" id="repay-title">Record Repayment</span><button class="xbtn" onclick="closeRepay()">✕</button></div>
+    <label class="lbl">Repayment Amount (₦)</label>
+    <input class="inp inp-lg" id="repay-amt" type="number" inputmode="numeric" placeholder="0.00"/>
+    <label class="lbl">Note</label>
+    <input class="inp" id="repay-note" type="text" placeholder="Optional"/>
+    <button class="sbtn" onclick="saveRepayment()" style="background:#10D98B">✓ Record Repayment</button>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let records = JSON.parse(localStorage.getItem('md_records') || '[]');
+let clients = JSON.parse(localStorage.getItem('md_clients') || '[]');
+let loans   = JSON.parse(localStorage.getItem('md_loans')   || '[]');
+let rates   = JSON.parse(localStorage.getItem('md_rates')   || '{"usd":1600,"eur":1750,"gbp":2050}');
+let editId=null, formType='spend', formAcc='cash';
+let filterType='all', filterAcc='all', loanFilter='all';
+let activeClientId=null, clientTxnType='deposit', activeLoanId=null;
+
+const S = k => localStorage.setItem(k, JSON.stringify(
+  k==='md_records'?records:k==='md_clients'?clients:k==='md_loans'?loans:rates));
+const uid = () => Math.random().toString(36).slice(2)+Date.now();
+const fmt = n => '₦'+Number(n).toLocaleString('en-NG',{minimumFractionDigits:0});
+const fmtD = iso => new Date(iso).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'});
+
+// Splash
+setTimeout(()=>document.getElementById('splash').classList.add('hide'),2500);
+
+// ── Screens ───────────────────────────────────────────────────────────────────
+const titles={home:'Overview',currency:'Currency Exchange',savings:'Client Savings',loans:'Loan Management',report:'Closing Report',history:'Transaction History'};
+function setScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('screen-title').textContent=titles[name]||name;
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.querySelector('.nav-label').classList.remove('active');
+    const d=n.querySelector('.nav-dot');if(d)d.remove();
+  });
+  const nv=document.getElementById('nav-'+name);
+  if(nv){nv.querySelector('.nav-label').classList.add('active');
+    const d=document.createElement('div');d.className='nav-dot';nv.appendChild(d);}
+  if(name==='history')renderHistory();
+  if(name==='report')renderReport();
+  if(name==='savings')renderClients();
+  if(name==='loans')renderLoans();
+  if(name==='currency')renderFX();
+}
+
+// ── Home ──────────────────────────────────────────────────────────────────────
+function renderAll(){
+  const cb=records.reduce((s,r)=>s+(r.account==='cash'?(r.type==='collect'?r.amount:-r.amount):0),0);
+  const bb=records.reduce((s,r)=>s+(r.account==='bank'?(r.type==='collect'?r.amount:-r.amount):0),0);
+  const ti=records.filter(r=>r.type==='collect').reduce((s,r)=>s+r.amount,0);
+  const to=records.filter(r=>r.type==='spend').reduce((s,r)=>s+r.amount,0);
+  const tl=loans.filter(l=>l.status==='active').reduce((s,l)=>s+l.remaining,0);
+  const ts=clients.reduce((s,c)=>s+c.balance,0);
+  document.getElementById('total-bal').textContent=fmt(cb+bb);
+  document.getElementById('total-bal').style.color=(cb+bb)>=0?'#F0F6FC':'#FF5C6A';
+  document.getElementById('cash-bal').textContent=fmt(cb);
+  document.getElementById('cash-bal').style.color=cb>=0?'#10D98B':'#FF5C6A';
+  document.getElementById('bank-bal').textContent=fmt(bb);
+  document.getElementById('bank-bal').style.color=bb>=0?'#4A9EFF':'#FF5C6A';
+  document.getElementById('total-in').textContent=fmt(ti);
+  document.getElementById('total-out').textContent=fmt(to);
+  document.getElementById('total-loans').textContent=fmt(tl);
+  document.getElementById('total-savings').textContent=fmt(ts);
+  const recent=[...records].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  document.getElementById('recent-list').innerHTML=recent.length===0
+    ?'<div class="empty"><div class="empty-txt">No records yet. Tap Spend or Collect!</div></div>'
+    :recent.map(r=>rowHTML(r,false)).join('');
+}
+
+function rowHTML(r,edit){
+  const ok=r.type==='collect';
+  return`<div class="rec-row">
+    <div class="rec-icon" style="background:${ok?'rgba(16,217,139,0.1)':'rgba(255,92,106,0.1)'}">
+      ${ok?'↓':'↑'}
+    </div>
+    <div class="rec-info">
+      <div class="rec-note">${r.note||(ok?'Income':'Expense')}</div>
+      <div class="rec-meta">
+        <span class="rec-badge" style="background:${r.account==='cash'?'rgba(245,200,66,0.12)':'rgba(74,158,255,0.12)'};color:${r.account==='cash'?'#F5C842':'#4A9EFF'}">${r.account.toUpperCase()}</span>
+        ${r.category?`<span class="rec-badge" style="background:rgba(139,148,158,0.1);color:#8B949E">${r.category}</span>`:''}
+        <span class="rec-date">${fmtD(r.date)}</span>
+      </div>
+    </div>
+    <div class="rec-right">
+      <div class="rec-amount" style="color:${ok?'#10D98B':'#FF5C6A'}">${ok?'+':'-'}${fmt(r.amount)}</div>
+      ${edit?`<div class="rec-actions">
+        <button class="rec-btn" style="background:#1F2937" onclick="editRecord('${r.id}')">✏️</button>
+        <button class="rec-btn" style="background:rgba(255,92,106,0.1)" onclick="delRecord('${r.id}')">🗑️</button>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function renderHistory(){
+  const list=[...records].sort((a,b)=>new Date(b.date)-new Date(a.date))
+    .filter(r=>(filterType==='all'||r.type===filterType)&&(filterAcc==='all'||r.account===filterAcc));
+  document.getElementById('count-txt').textContent=list.length+' record'+(list.length!==1?'s':'');
+  document.getElementById('history-list').innerHTML=list.length===0
+    ?'<div class="empty"><div class="empty-txt">No records match.</div></div>'
+    :list.map(r=>rowHTML(r,true)).join('');
+}
+function setFilter(k,v,btn){
+  if(k==='type'){filterType=v;document.querySelectorAll('#screen-history .filter-row:first-child .chip').forEach(b=>b.classList.remove('active'));}
+  else{filterAcc=v;document.querySelectorAll('#screen-history .filter-row:nth-child(2) .chip').forEach(b=>b.classList.remove('active'));}
+  btn.classList.add('active');renderHistory();
+}
+
+// ── Currency ──────────────────────────────────────────────────────────────────
+const FX=[{id:'usd',flag:'🇺🇸',label:'USD / NGN'},{id:'eur',flag:'🇪🇺',label:'EUR / NGN'},{id:'gbp',flag:'🇬🇧',label:'GBP / NGN'}];
+function renderFX(){
+  document.getElementById('fx-cards').innerHTML=FX.map(f=>`
+    <div class="fx-card">
+      <div class="fx-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:24px">${f.flag}</span>
+          <div>
+            <div class="fx-currency">${f.label}</div>
+            <div class="fx-rate-display">Rate: <span id="${f.id}-rdsp">${fmt(rates[f.id])}</span></div>
+          </div>
+        </div>
+        <button class="edit-rate-btn" onclick="toggleRate('${f.id}')">Edit Rate</button>
+      </div>
+      <div id="${f.id}-redit" style="display:none;margin-bottom:10px">
+        <input class="rate-inp" id="${f.id}-rinp" type="number" placeholder="Enter rate" value="${rates[f.id]}" oninput="setRate('${f.id}')"/>
+      </div>
+      <div class="fx-grid">
+        <input class="fx-inp" id="${f.id}-finp" type="number" placeholder="${f.id.toUpperCase()}" oninput="conv('${f.id}','ngn')"/>
+        <div class="fx-arrow">⇄</div>
+        <input class="fx-out" id="${f.id}-fout" type="number" placeholder="NGN" oninput="conv('ngn','${f.id}')"/>
+      </div>
+    </div>`).join('');
+}
+function toggleRate(id){const e=document.getElementById(id+'-redit');e.style.display=e.style.display==='none'?'block':'none';}
+function setRate(id){const v=parseFloat(document.getElementById(id+'-rinp').value);if(v>0){rates[id]=v;S('md_rates');document.getElementById(id+'-rdsp').textContent=fmt(v);}}
+function conv(from,to){
+  FX.forEach(f=>{
+    if(from===f.id&&to==='ngn'){const v=parseFloat(document.getElementById(f.id+'-finp').value)||0;document.getElementById(f.id+'-fout').value=(v*rates[f.id]).toFixed(0);}
+    else if(from==='ngn'&&to===f.id){const v=parseFloat(document.getElementById(f.id+'-fout').value)||0;document.getElementById(f.id+'-finp').value=(v/rates[f.id]).toFixed(2);}
+  });
+}
+
+// ── Clients ───────────────────────────────────────────────────────────────────
+function renderClients(){
+  const total=clients.reduce((s,c)=>s+c.balance,0);
+  document.getElementById('savings-summary').textContent=`${clients.length} client${clients.length!==1?'s':''} · ${fmt(total)} total`;
+  document.getElementById('clients-list').innerHTML=clients.length===0
+    ?'<div class="empty"><div class="empty-txt">No clients yet. Tap "+ Add Client".</div></div>'
+    :clients.map(c=>`
+      <div class="client-card">
+        <div class="client-top">
+          <div>
+            <div class="client-name">👤 ${c.name}</div>
+            ${c.phone?`<div class="client-meta">📞 ${c.phone}</div>`:''}
+            <div class="client-bal">${fmt(c.balance)}</div>
+            <div class="client-meta">Since ${fmtD(c.date)} · ${(c.txns||[]).length} transactions</div>
+          </div>
+          <button onclick="delClient('${c.id}')" style="background:rgba(255,92,106,0.1);border:none;border-radius:8px;padding:6px 8px;color:#FF5C6A;">🗑️</button>
+        </div>
+        <div class="client-btns">
+          <button class="client-btn" style="background:#10D98B" onclick="openCtxn('${c.id}','deposit')">↓ Deposit</button>
+          <button class="client-btn" style="background:#FF5C6A" onclick="openCtxn('${c.id}','withdraw')">↑ Withdraw</button>
+        </div>
+      </div>`).join('');
+}
+function openAddClient(){document.getElementById('c-name').value='';document.getElementById('c-phone').value='';document.getElementById('c-amt').value='';document.getElementById('c-note').value='';document.getElementById('client-modal').classList.add('open');}
+function closeClientModal(){document.getElementById('client-modal').classList.remove('open');}
+function saveClient(){
+  const name=document.getElementById('c-name').value.trim();
+  const phone=document.getElementById('c-phone').value.trim();
+  const amt=parseFloat(document.getElementById('c-amt').value)||0;
+  const note=document.getElementById('c-note').value.trim();
+  if(!name)return;
+  clients.push({id:uid(),name,phone,balance:amt,date:new Date().toISOString(),note,txns:[{type:'deposit',amount:amt,date:new Date().toISOString(),note:'Initial deposit'}]});
+  S('md_clients');closeClientModal();renderClients();renderAll();
+}
+function delClient(id){if(confirm('Delete this client?')){clients=clients.filter(c=>c.id!==id);S('md_clients');renderClients();renderAll();}}
+function openCtxn(id,type){
+  activeClientId=id;clientTxnType=type;
+  const c=clients.find(x=>x.id===id);
+  document.getElementById('ctxn-title').textContent=c.name+' · '+(type==='deposit'?'Deposit':'Withdraw');
+  document.getElementById('ctxn-amt').value='';document.getElementById('ctxn-note').value='';
+  setCTT(type);document.getElementById('ctxn-modal').classList.add('open');
+}
+function closeCtxn(){document.getElementById('ctxn-modal').classList.remove('open');}
+function setCTT(t){
+  clientTxnType=t;
+  const d=document.getElementById('ctog-dep'),w=document.getElementById('ctog-wit'),b=document.getElementById('ctxn-sbtn');
+  d.style.background=t==='deposit'?'#10D98B':'transparent';d.style.color=t==='deposit'?'#fff':'#8B949E';
+  w.style.background=t==='withdraw'?'#FF5C6A':'transparent';w.style.color=t==='withdraw'?'#fff':'#8B949E';
+  b.style.background=t==='deposit'?'#10D98B':'#FF5C6A';
+}
+function saveCtxn(){
+  const amt=parseFloat(document.getElementById('ctxn-amt').value);if(!amt||amt<=0)return;
+  const note=document.getElementById('ctxn-note').value.trim();
+  const i=clients.findIndex(c=>c.id===activeClientId);if(i===-1)return;
+  clients[i].balance=Math.max(0,clients[i].balance+(clientTxnType==='deposit'?amt:-amt));
+  if(!clients[i].txns)clients[i].txns=[];
+  clients[i].txns.push({type:clientTxnType,amount:amt,date:new Date().toISOString(),note});
+  S('md_clients');closeCtxn();renderClients();renderAll();
+}
+
+// ── Loans ─────────────────────────────────────────────────────────────────────
+function renderLoans(){
+  const active=loans.filter(l=>l.status==='active');
+  document.getElementById('loans-summary').textContent=`${active.length} active · ${fmt(active.reduce((s,l)=>s+l.remaining,0))} outstanding`;
+  const filtered=loanFilter==='all'?loans:loans.filter(l=>l.status===loanFilter);
+  document.getElementById('loans-list').innerHTML=filtered.length===0
+    ?'<div class="empty"><div class="empty-txt">No loans recorded.</div></div>'
+    :filtered.map(l=>{
+      const paid=l.status==='paid';
+      const overdue=!paid&&l.dueDate&&new Date(l.dueDate)<new Date();
+      return`<div class="loan-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="loan-name">👤 ${l.name}</div>
+            ${l.phone?`<div class="loan-meta">📞 ${l.phone}</div>`:''}
+            <div class="loan-amount">${fmt(l.remaining)} <span style="font-size:13px;color:#8B949E">remaining</span></div>
+            <div class="loan-meta">Original: ${fmt(l.amount)} · Interest: ${l.interest}%</div>
+            ${l.dueDate?`<div class="loan-due" style="color:${overdue?'#FF5C6A':'#8B949E'}">${overdue?'⚠️ Overdue':'Due'}: ${fmtD(l.dueDate)}</div>`:''}
+            <span class="loan-status" style="background:${paid?'rgba(16,217,139,0.1)':overdue?'rgba(255,92,106,0.1)':'rgba(255,159,67,0.1)'};color:${paid?'#10D98B':overdue?'#FF5C6A':'#FF9F43'}">${paid?'✓ PAID':overdue?'OVERDUE':'ACTIVE'}</span>
+          </div>
+          <button onclick="delLoan('${l.id}')" style="background:rgba(255,92,106,0.1);border:none;border-radius:8px;padding:6px 8px;color:#FF5C6A;">🗑️</button>
+        </div>
+        ${!paid?`<div class="loan-btns">
+          <button class="loan-btn" style="background:#10D98B" onclick="openRepay('${l.id}')">↓ Repayment</button>
+          <button class="loan-btn" style="background:#4A9EFF" onclick="markPaid('${l.id}')">✓ Mark Paid</button>
+        </div>`:''}
+      </div>`;}).join('');
+}
+function setLoanFilter(v,btn){loanFilter=v;document.querySelectorAll('#screen-loans .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLoans();}
+function openAddLoan(){
+  document.getElementById('l-name').value='';document.getElementById('l-phone').value='';
+  document.getElementById('l-amt').value='';document.getElementById('l-interest').value='0';
+  document.getElementById('l-due').value='';document.getElementById('l-note').value='';
+  document.getElementById('loan-modal').classList.add('open');
+}
+function closeLoanModal(){document.getElementById('loan-modal').classList.remove('open');}
+function saveLoan(){
+  const name=document.getElementById('l-name').value.trim();
+  const phone=document.getElementById('l-phone').value.trim();
+  const amt=parseFloat(document.getElementById('l-amt').value);
+  const interest=parseFloat(document.getElementById('l-interest').value)||0;
+  const due=document.getElementById('l-due').value;
+  const note=document.getElementById('l-note').value.trim();
+  if(!name||!amt||amt<=0)return;
+  const total=amt*(1+interest/100);
+  loans.push({id:uid(),name,phone,amount:amt,interest,total,remaining:total,dueDate:due||null,note,status:'active',date:new Date().toISOString(),repayments:[]});
+  S('md_loans');closeLoanModal();renderLoans();renderAll();
+}
+function delLoan(id){if(confirm('Delete this loan record?')){loans=loans.filter(l=>l.id!==id);S('md_loans');renderLoans();renderAll();}}
+function markPaid(id){const i=loans.findIndex(l=>l.id===id);if(i>-1){loans[i].status='paid';loans[i].remaining=0;S('md_loans');renderLoans();renderAll();}}
+function openRepay(id){
+  activeLoanId=id;const l=loans.find(x=>x.id===id);
+  document.getElementById('repay-title').textContent=l.name+' — Repayment';
+  document.getElementById('repay-amt').value='';document.getElementById('repay-note').value='';
+  document.getElementById('repay-modal').classList.add('open');
+}
+function closeRepay(){document.getElementById('repay-modal').classList.remove('open');}
+function saveRepayment(){
+  const amt=parseFloat(document.getElementById('repay-amt').value);if(!amt||amt<=0)return;
+  const note=document.getElementById('repay-note').value.trim();
+  const i=loans.findIndex(l=>l.id===activeLoanId);if(i===-1)return;
+  loans[i].remaining=Math.max(0,loans[i].remaining-amt);
+  if(loans[i].remaining===0)loans[i].status='paid';
+  loans[i].repayments.push({amount:amt,date:new Date().toISOString(),note});
+  records.unshift({id:uid(),type:'collect',account:'cash',amount:amt,note:`Loan repayment — ${loans[i].name}`,category:'Loan Repayment',date:new Date().toISOString()});
+  S('md_loans');S('md_records');closeRepay();renderLoans();renderAll();
+}
+
+// ── Report ────────────────────────────────────────────────────────────────────
+function renderReport(){
+  const today=new Date();
+  document.getElementById('report-date').textContent='Closing Report — '+today.toLocaleDateString('en-NG',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const cb=records.reduce((s,r)=>s+(r.account==='cash'?(r.type==='collect'?r.amount:-r.amount):0),0);
+  const bb=records.reduce((s,r)=>s+(r.account==='bank'?(r.type==='collect'?r.amount:-r.amount):0),0);
+  const ti=records.filter(r=>r.type==='collect').reduce((s,r)=>s+r.amount,0);
+  const to=records.filter(r=>r.type==='spend').reduce((s,r)=>s+r.amount,0);
+  const tl=loans.filter(l=>l.status==='active').reduce((s,l)=>s+l.remaining,0);
+  const ts=clients.reduce((s,c)=>s+c.balance,0);
+  const al=loans.filter(l=>l.status==='active').length;
+  document.getElementById('r-in').textContent=fmt(ti);
+  document.getElementById('r-out').textContent=fmt(to);
+  const net=ti-to;
+  document.getElementById('r-net').textContent=fmt(net);
+  document.getElementById('r-net').style.color=net>=0?'#10D98B':'#FF5C6A';
+  document.getElementById('r-cash').textContent=fmt(cb);
+  document.getElementById('r-bank').textContent=fmt(bb);
+  document.getElementById('r-count').textContent=records.length;
+  document.getElementById('r-usd').textContent=fmt(rates.usd)+'/USD';
+  document.getElementById('r-eur').textContent=fmt(rates.eur)+'/EUR';
+  document.getElementById('r-gbp').textContent=fmt(rates.gbp)+'/GBP';
+  document.getElementById('r-clients').textContent=clients.length;
+  document.getElementById('r-savings').textContent=fmt(ts);
+  document.getElementById('r-loan-count').textContent=al;
+  document.getElementById('r-loans').textContent=fmt(tl);
+}
+function printReport(){
+  const today=new Date().toLocaleDateString('en-NG',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const cb=records.reduce((s,r)=>s+(r.account==='cash'?(r.type==='collect'?r.amount:-r.amount):0),0);
+  const bb=records.reduce((s,r)=>s+(r.account==='bank'?(r.type==='collect'?r.amount:-r.amount):0),0);
+  const ti=records.filter(r=>r.type==='collect').reduce((s,r)=>s+r.amount,0);
+  const to=records.filter(r=>r.type==='spend').reduce((s,r)=>s+r.amount,0);
+  const tl=loans.filter(l=>l.status==='active').reduce((s,l)=>s+l.remaining,0);
+  const ts=clients.reduce((s,c)=>s+c.balance,0);
+  const txt=`MD BUSINESS SUITE
+Alhj. Musa Dahiru — Closing Report
+${today}
+${'━'.repeat(38)}
+TRANSACTIONS
+Total Collected  : ${fmt(ti)}
+Total Spent      : ${fmt(to)}
+Net Profit       : ${fmt(ti-to)}
+Cash in Hand     : ${fmt(cb)}
+Bank Balance     : ${fmt(bb)}
+Total Records    : ${records.length}
+${'━'.repeat(38)}
+FX RATES TODAY
+USD : ${fmt(rates.usd)} per $1
+EUR : ${fmt(rates.eur)} per €1
+GBP : ${fmt(rates.gbp)} per £1
+${'━'.repeat(38)}
+SAVINGS & LOANS
+Total Clients    : ${clients.length}
+Total Savings    : ${fmt(ts)}
+Active Loans     : ${loans.filter(l=>l.status==='active').length}
+Outstanding Loans: ${fmt(tl)}
+${'━'.repeat(38)}
+MD Business Suite by ITech
+Powered by Isa Ismail`;
+  if(navigator.share){navigator.share({title:'MD Business Suite — Closing Report',text:txt});}
+  else{const w=window.open('','_blank');w.document.write('<pre style="font-family:monospace;padding:20px;white-space:pre-wrap">'+txt+'</pre>');w.print();}
+}
+
+// ── Entry Modal ───────────────────────────────────────────────────────────────
+function openModal(type){
+  editId=null;formType=type||'spend';formAcc='cash';
+  document.getElementById('inp-amount').value='';
+  document.getElementById('inp-note').value='';
+  document.getElementById('inp-cat').value='General';
+  document.getElementById('modal-title').textContent='New Record';
+  document.getElementById('modal').classList.add('open');
+  updateToggles();updateSaveBtn();
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');editId=null;}
+function setFT(t){formType=t;updateToggles();updateSaveBtn();}
+function setFA(a){formAcc=a;updateToggles();}
+function updateToggles(){
+  const st=document.getElementById('tog-spend'),ct=document.getElementById('tog-collect');
+  const ca=document.getElementById('tog-cash'),ba=document.getElementById('tog-bank');
+  st.style.background=formType==='spend'?'#FF5C6A':'transparent';st.style.color=formType==='spend'?'#fff':'#8B949E';
+  ct.style.background=formType==='collect'?'#10D98B':'transparent';ct.style.color=formType==='collect'?'#fff':'#8B949E';
+  ca.style.background=formAcc==='cash'?'#F5C842':'transparent';ca.style.color=formAcc==='cash'?'#0A0E1A':'#8B949E';
+  ba.style.background=formAcc==='bank'?'#F5C842':'transparent';ba.style.color=formAcc==='bank'?'#0A0E1A':'#8B949E';
+}
+function updateSaveBtn(){
+  const v=parseFloat(document.getElementById('inp-amount').value);
+  const btn=document.getElementById('save-btn'),lbl=document.getElementById('save-label');
+  btn.disabled=!(v&&v>0);
+  btn.style.background=!(v&&v>0)?'#2D3748':(formType==='spend'?'#FF5C6A':'#10D98B');
+  lbl.textContent=editId?'Save Changes':(formType==='spend'?'Record Spend':'Record Collect');
+  updateToggles();
+}
+function handleSave(){
+  const amt=parseFloat(document.getElementById('inp-amount').value);if(!amt||amt<=0)return;
+  const note=document.getElementById('inp-note').value.trim();
+  const category=document.getElementById('inp-cat').value;
+  if(editId){records=records.map(r=>r.id===editId?{...r,type:formType,account:formAcc,amount:amt,note,category}:r);}
+  else{records.unshift({id:uid(),type:formType,account:formAcc,amount:amt,note,category,date:new Date().toISOString()});}
+  S('md_records');closeModal();renderAll();
+  if(document.getElementById('screen-history').classList.contains('active'))renderHistory();
+}
+function editRecord(id){
+  const r=records.find(x=>x.id===id);if(!r)return;
+  editId=id;formType=r.type;formAcc=r.account;
+  document.getElementById('inp-amount').value=r.amount;
+  document.getElementById('inp-note').value=r.note||'';
+  document.getElementById('inp-cat').value=r.category||'General';
+  document.getElementById('modal-title').textContent='Edit Record';
+  document.getElementById('modal').classList.add('open');
+  updateToggles();updateSaveBtn();
+}
+function delRecord(id){if(confirm('Delete this record?')){records=records.filter(r=>r.id!==id);S('md_records');renderAll();renderHistory();}}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
